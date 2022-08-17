@@ -1,0 +1,6 @@
+[deps]
+AWS = "fbe9abb3-538b-5e4e-ba9e-bc94f4f92ebc"
+AWSS3 = "1c724243-ef5b-51ab-93f4-b0a88ac62a95"
+MD5 = "6ac74813-4b46-53a4-afec-0b5dc9d7885c"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
+SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
