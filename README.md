@@ -128,13 +128,20 @@ This takes a bit under 2 hours to complete.
 
 ### Building the PDF documentation
 
-Go to https://github.com/JuliaLang/docs.julialang.org/actions/workflows/PDFs.yml and
-click "Run workflow", ensure "Branch: master" is selected, and then hit the button.
+While the HTML documentation is updated regularly, the PDF version of the documentation
+is only built once every 24 hours.
+People often expect that the PDF version is available at the time the release is
+announced, so it's worthwhile to build it prior to the announcement even though it would
+be built eventually on CI anyway.
+
+To do so, go to <https://github.com/JuliaLang/docs.julialang.org/actions/workflows/PDFs.yml>
+and click "Run workflow", ensure "Branch: master" is selected, and then hit the button.
 This takes at least 1 hour to complete.
 
-In case the PDF fails to build on CI, but can still be compiled locally, the locally produced PDF can
-manually be pushed to the [`assets` branch](https://github.com/JuliaLang/docs.julialang.org/tree/assets)
-of the repository
+If the PDF fails to build on CI but can still be compiled locally, the locally produced
+PDF can be manually pushed to the
+[`assets` branch](https://github.com/JuliaLang/docs.julialang.org/tree/assets)
+of the repository.
 
 ### Updating the website
 
