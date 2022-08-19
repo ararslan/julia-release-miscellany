@@ -132,6 +132,10 @@ Go to https://github.com/JuliaLang/docs.julialang.org/actions/workflows/PDFs.yml
 click "Run workflow", ensure "Branch: master" is selected, and then hit the button.
 This takes at least 1 hour to complete.
 
+In case the PDF fails to build on CI, but can still be compiled locally, the locally produced PDF can
+manually be pushed to the [`assets` branch](https://github.com/JuliaLang/docs.julialang.org/tree/assets)
+of the repository
+
 ### Updating the website
 
 Edit <https://github.com/JuliaLang/www.julialang.org/blob/main/config.md> to reflect the
