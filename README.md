@@ -21,8 +21,9 @@ PR that bumps the version is merged.
 5. Move binaries to `s3://julialang2`
 6. Compute and upload checksums
 7. Trigger a build of `versions.json`
-8. Update the website
-9. Announce on Discourse
+8. Trigger a build of the PDF documentation
+9. Update the website
+10. Announce on Discourse
 
 ### Creating the tag
 
@@ -124,6 +125,23 @@ Check the prerelease box at the bottom for betas, RCs, etc. as applicable.
 Go to <https://github.com/JuliaLang/VersionsJSONUtil.jl/actions/workflows/CI.yml> and
 click "Run workflow," ensure "Branch: main" is selected, then hit the button.
 This takes a bit under 2 hours to complete.
+
+### Building the PDF documentation
+
+While the HTML documentation is updated regularly, the PDF version of the documentation
+is only built once every 24 hours.
+People often expect that the PDF version is available at the time the release is
+announced, so it's worthwhile to build it prior to the announcement even though it would
+be built eventually on CI anyway.
+
+To do so, go to <https://github.com/JuliaLang/docs.julialang.org/actions/workflows/PDFs.yml>
+and click "Run workflow", ensure "Branch: master" is selected, and then hit the button.
+This takes at least 1 hour to complete.
+
+If the PDF fails to build on CI but can still be compiled locally, the locally produced
+PDF can be manually pushed to the
+[`assets` branch](https://github.com/JuliaLang/docs.julialang.org/tree/assets)
+of the repository.
 
 ### Updating the website
 
