@@ -21,8 +21,9 @@ PR that bumps the version is merged.
 5. Move binaries to `s3://julialang2`
 6. Compute and upload checksums
 7. Trigger a build of `versions.json`
-8. Update the website
-9. Announce on Discourse
+8. Trigger a build of the PDF documentation
+9. Update the website
+10. Announce on Discourse
 
 ### Creating the tag
 
@@ -124,6 +125,12 @@ Check the prerelease box at the bottom for betas, RCs, etc. as applicable.
 Go to <https://github.com/JuliaLang/VersionsJSONUtil.jl/actions/workflows/CI.yml> and
 click "Run workflow," ensure "Branch: main" is selected, then hit the button.
 This takes a bit under 2 hours to complete.
+
+### Building the PDF documentation
+
+Go to https://github.com/JuliaLang/docs.julialang.org/actions/workflows/PDFs.yml and
+click "Run workflow", ensure "Branch: master" is selected, and then hit the button.
+This takes at least 1 hour to complete.
 
 ### Updating the website
 
