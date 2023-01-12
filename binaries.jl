@@ -10,7 +10,7 @@ using SHA
 
 global_aws_config(; profile="julia", region="us-east-1")
 
-version = v"1.8.0"
+version = v"1.8.5"
 
 macos_already_notarized = false  # whether Elliot notarized manually and put in julialang2
 
@@ -37,15 +37,11 @@ platforms = [
     Windows(:i686),
 ]
 
-builder(::Union{FreeBSD,Windows}) = :buildbot
-if version >= v"1.8.0-"
-    builder(::Any) = :buildkite
-elseif version >= v"1.7.0-"
-    # I think this is true
-    builder(p::Linux) = libc(p) === :musl ? :buildbot : :buildkite
-    builder(::Any) = :buildkite
+builder(::FreeBSD) = :buildbot  # Until the julia-buildkite PR is merged
+if version < v"1.7.0-"
+    builder(::Any) = :buildbot  # Until 1.6 LTS moves to buildkite
 else
-    builder(::Any) = :buildbot
+    builder(::Any) = :buildkite
 end
 
 short_name(::FreeBSD) = "freebsd"
@@ -74,10 +70,8 @@ function nightly_name(platform, commit, version=version)
     a = arch(platform)
     suffix = if a === :x86_64 || a === :i686
         string(wordsize(platform))
-    elseif a === :powerpc64le
-        "ppc64"
-    elseif builder(platform) === :buildkite && platform == Linux(:aarch64)
-        "-aarch64"
+    elseif builder(platform) === :buildkite && Sys.islinux(platform) && libc(platform) === :glibc
+        '-' * String(a)
     else
         String(a)
     end
@@ -90,9 +84,10 @@ function nightly_name(platform, commit, version=version)
     end
 end
 
-function nightly_url(platform, commit, ext, prefix="bin")
-    path = [prefix, short_name(platform), short_arch(platform),
-            short_version, nightly_name(platform, commit)]
+function nightly_url(platform, commit, ext)
+    prefix = builder(platform) === :buildbot && version >= v"1.7.0-" ? "pretesting" : "bin"
+    a = arch(platform) === :powerpc64le ? String(arch(platform)) : short_arch(platform)
+    path = [prefix, short_name(platform), a, short_version, nightly_name(platform, commit)]
     return S3Path("julialangnightlies", join(path, '/') * '.' * ext)
 end
 
