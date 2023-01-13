@@ -3,8 +3,8 @@
 This repository is for notes, scripts, and whatever else I've found handy for making
 Julia releases over the years.
 Hopefully others who make releases will also find it handy.
-Note that the contents here reflect the state of play as of 2022-08-17, where 1.6 is LTS
-and 1.8.0 is coming out today, replacing 1.7 as stable.
+Note that the contents here reflect the state of play as of 2023-01-12, where 1.6 is LTS
+and 1.8.5 is the current stable version.
 If you're reading this and you haven't seen any commits since then, note that what you're
 reading may be out of date.
 
@@ -43,10 +43,12 @@ Depending on the version, some platforms will be built on buildkite and some wil
 built on buildbot.
 For Julia 1.6, _everything_ is built on buildbot, but most platforms have since migrated
 to buildkite.
-Windows (x86 and x86\_64) and FreeBSD (x86\_64) are still always built on buildbot.
+Currently only FreeBSD (x86\_64) remains on buildbot; the PR to add it to buildkite just
+needs to be merged.
 
 Note that for 1.6, Elliot will need to notarize the macOS x86\_64 disk image file manually.
 This happens automatically on buildkite for both x86\_64 and AArch64.
+(There is no macOS AArch64 for 1.6.)
 
 #### 1.6
 
@@ -102,7 +104,7 @@ manually via
 make full-source-dist light-source-dist USE_BINARYBUILDER=0
 ```
 
-I usually do this on antarctic with many concurrent jobs (the `-j` flag for `make`).
+I usually do this on amdci6 with a handful of concurrent jobs (the `-j` flag for `make`).
 That command produces two tarballs in the root of the directory, the names of which must
 be adjusted (IIRC it duplicates the version in the name).
 The tarballs must then be GPG signed with the appropriate signing key:
@@ -154,4 +156,4 @@ page](https://github.com/JuliaLang/www.julialang.org/blob/main/downloads/index.m
 reflect the available binaries for this release.
 Add an entry to the [old releases
 page](https://github.com/JuliaLang/www.julialang.org/blob/main/downloads/oldreleases.md)
-if applicable.
+if applicable using the script in the website repo.
