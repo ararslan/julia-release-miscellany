@@ -10,7 +10,7 @@ using SHA
 
 global_aws_config(; profile="julia", region="us-east-1")
 
-version = v"1.8.5"
+version = v"1.12.0-rc1"
 
 macos_already_notarized = false  # whether Elliot notarized manually and put in julialang2
 
@@ -37,12 +37,12 @@ platforms = [
     Windows(:i686),
 ]
 
-builder(::FreeBSD) = :buildbot  # Until the julia-buildkite PR is merged
-if version < v"1.7.0-"
-    builder(::Any) = :buildbot  # Until 1.6 LTS moves to buildkite
-else
+#builder(::FreeBSD) = :buildbot  # Until the julia-buildkite PR is merged
+#if version < v"1.7.0-"
+#    builder(::Any) = :buildbot  # Until 1.6 LTS moves to buildkite
+#else
     builder(::Any) = :buildkite
-end
+#end
 
 short_name(::FreeBSD) = "freebsd"
 short_name(::Windows) = "winnt"
@@ -122,7 +122,6 @@ for platform in platforms
                         --key $(join(nightly.segments, '/'))
                         --no-paginate
                         --no-cli-pager
-                        --profile julia
                     ```)
             @warn "Skipping $nightly, does not exist"
             if !(Sys.isapple(platform) && macos_already_notarized)
@@ -141,7 +140,6 @@ for platform in platforms
                     --acl bucket-owner-full-control
                     --no-paginate
                     --no-cli-pager
-                    --profile julia
                 ```)
         end
         # Download locally for checksumming, but skip .asc
@@ -156,7 +154,6 @@ for platform in platforms
                     aws s3 cp
                         $release
                         $(joinpath(destination, basename(release)))
-                        --profile julia
                     ```)
             catch ex
                 @error "Oopsie poopsie" exception=(ex, catch_backtrace())
@@ -187,7 +184,6 @@ for (i, ext) in enumerate(("sha256", "md5"))
         aws s3 cp
             $fname
             s3://julialang2/bin/checksums/
-            --profile julia
             --acl public-read
         ```)
 end
@@ -201,7 +197,6 @@ for platform in platforms, ext in exts(platform)
                     --key $(join(release.segments, '/'))
                     --no-paginate
                     --no-cli-pager
-                    --profile julia
                 ```)
         @warn "Skipping $release, does not exist"
         continue
@@ -211,7 +206,6 @@ for platform in platforms, ext in exts(platform)
                      --bucket $(release.bucket)
                      --key $(join(release.segments, '/'))
                      --acl public-read
-                     --profile julia
                  ```; stdout=devnull))
     parts = collect(release.segments)
     parts[end] = replace(parts[end], string(version) => "$short_version-latest")
@@ -221,7 +215,6 @@ for platform in platforms, ext in exts(platform)
             $release
             s3://$(release.bucket)/$latest
             --acl public-read
-            --profile julia
         ```)
     run(pipeline(`curl -s -X PURGE https://julialang-s3.julialang.org/$latest`;
                  stdout=devnull))
