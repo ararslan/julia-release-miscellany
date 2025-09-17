@@ -10,7 +10,7 @@ using SHA
 
 global_aws_config(; profile="julia", region="us-east-1")
 
-version = v"1.12.0-rc1"
+version = v"1.11.7"
 
 macos_already_notarized = false  # whether Elliot notarized manually and put in julialang2
 
@@ -130,14 +130,12 @@ for platform in platforms
         end
         if !(Sys.isapple(platform) && macos_already_notarized && ext == "dmg")
             @info "Copying from nightly to release"
-            # Don't inherit the source ACL to avoid having the release binaries publicly
-            # visible before they're guaranteed "final"
             run(```
                 aws s3api copy-object
                     --copy-source $(nightly.bucket)/$(join(nightly.segments, '/'))
                     --bucket $(release.bucket)
                     --key $(join(release.segments, '/'))
-                    --acl bucket-owner-full-control
+                    --acl public-read
                     --no-paginate
                     --no-cli-pager
                 ```)
@@ -201,6 +199,7 @@ for platform in platforms, ext in exts(platform)
         @warn "Skipping $release, does not exist"
         continue
     end
+    # This should be redundant but it doesn't hurt to be extra sure
     run(pipeline(```
                  aws s3api put-object-acl
                      --bucket $(release.bucket)
