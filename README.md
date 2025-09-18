@@ -3,8 +3,8 @@
 This repository is for notes, scripts, and whatever else I've found handy for making
 Julia releases over the years.
 Hopefully others who make releases will also find it handy.
-Note that the contents here reflect the state of play as of 2025-08-14, where 1.10 is LTS
-and 1.11.6 is the current stable version.
+Note that the contents here reflect the state of play as of 2025-09-16, where 1.10 is LTS
+and 1.11.7 is the current stable version.
 If you're reading this and you haven't seen any commits since then, note that what you're
 reading may be out of date.
 
