@@ -10,7 +10,7 @@ using SHA
 
 global_aws_config(; profile="julia", region="us-east-1")
 
-version = v"1.11.7"
+version = v"1.13.0-beta2"
 
 macos_already_notarized = false  # whether Elliot notarized manually and put in julialang2
 
@@ -21,7 +21,7 @@ commit = cd(joinpath(homedir(), "Projects", "julia")) do
     return readchomp(`git rev-parse v$version`)[1:10]
 end
 
-short_version = string(version.major, '.', version.minor)
+short_version(v) = string(v.major, '.', v.minor)
 
 platforms = [
     FreeBSD(:x86_64),
@@ -84,10 +84,11 @@ function nightly_name(platform, commit, version=version)
     end
 end
 
-function nightly_url(platform, commit, ext)
+function nightly_url(platform, version, commit, ext)
     prefix = builder(platform) === :buildbot && version >= v"1.7.0-" ? "pretesting" : "bin"
     a = arch(platform) === :powerpc64le ? String(arch(platform)) : short_arch(platform)
-    path = [prefix, short_name(platform), a, short_version, nightly_name(platform, commit)]
+    path = [prefix, short_name(platform), a, short_version(version),
+            nightly_name(platform, commit)]
     return S3Path("julialangnightlies", join(path, '/') * '.' * ext)
 end
 
@@ -106,56 +107,62 @@ end
 
 function release_url(platform, version, ext)
     path = ["bin", short_name(platform), short_arch(platform),
-            short_version, release_name(platform, version)]
+            short_version(version), release_name(platform, version)]
     return S3Path("julialang2", join(path, '/') * '.' * ext)
 end
+
+function latest_url(platform, version, ext)
+    release = release_url(platform, version, ext)
+    parts = collect(release.segments)
+    parts[end] = replace(parts[end], string(version) => short_version(version) * "-latest")
+    return S3Path(release.bucket, join(parts, '/'))
+end
+
+exists_in_s3(url::S3Path) = exists_in_s3(url.bucket, url.key)
+exists_in_s3(bucket, key) =
+    success(```
+            aws s3api head-object
+                --bucket $bucket
+                --key $key
+                --no-paginate
+                --no-cli-pager
+            ```)
+
+copy_s3_object(from::S3Path, to::S3Path) =
+    run(```
+        aws s3api copy-object
+            --copy-source $(from.bucket)/$(from.key)
+            --bucket $(to.bucket)
+            --key $(to.key)
+            --acl public-read
+            --no-paginate
+            --no-cli-pager
+        ```)
 
 ispath(destination) || mkpath(destination)
 for platform in platforms
     for ext in exts(platform)
-        nightly = nightly_url(platform, commit, ext)
+        nightly = nightly_url(platform, version, commit, ext)
         release = release_url(platform, version, ext)
         @info platform ext nightly release
-        if !success(```
-                    aws s3api head-object
-                        --bucket $(nightly.bucket)
-                        --key $(join(nightly.segments, '/'))
-                        --no-paginate
-                        --no-cli-pager
-                    ```)
+        if !exists_in_s3(nightly)
             @warn "Skipping $nightly, does not exist"
-            if !(Sys.isapple(platform) && macos_already_notarized)
-                continue
-            end
+            continue
         end
-        if !(Sys.isapple(platform) && macos_already_notarized && ext == "dmg")
-            @info "Copying from nightly to release"
-            run(```
-                aws s3api copy-object
-                    --copy-source $(nightly.bucket)/$(join(nightly.segments, '/'))
-                    --bucket $(release.bucket)
-                    --key $(join(release.segments, '/'))
-                    --acl public-read
-                    --no-paginate
-                    --no-cli-pager
-                ```)
-        end
+        @info "Copying from nightly to release"
+        copy_s3_object(nightly, release)
         # Download locally for checksumming, but skip .asc
-        if !endswith(ext, ".asc")
-            @info "Downloading release locally"
-            if isfile(joinpath(destination, basename(release)))
-                @info "Already downloaded, skipping"
-                continue
-            end
-            try
-                run(```
-                    aws s3 cp
-                        $release
-                        $(joinpath(destination, basename(release)))
-                    ```)
-            catch ex
-                @error "Oopsie poopsie" exception=(ex, catch_backtrace())
-            end
+        endswith(ext, ".asc") && continue
+        @info "Downloading release locally"
+        here = joinpath(destination, basename(release))
+        if isfile(here)
+            @info "Already downloaded, skipping"
+            continue
+        end
+        try
+            run(`aws s3 cp $release $here`)
+        catch ex
+            @error "Error downloading $release" exception=(ex, catch_backtrace())
         end
     end
 end
@@ -189,13 +196,7 @@ end
 for platform in platforms, ext in exts(platform)
     release = release_url(platform, version, ext)
     @info "Processing" release
-    if !success(```
-                aws s3api head-object
-                    --bucket $(release.bucket)
-                    --key $(join(release.segments, '/'))
-                    --no-paginate
-                    --no-cli-pager
-                ```)
+    if !exists_in_s3(release)
         @warn "Skipping $release, does not exist"
         continue
     end
@@ -203,18 +204,11 @@ for platform in platforms, ext in exts(platform)
     run(pipeline(```
                  aws s3api put-object-acl
                      --bucket $(release.bucket)
-                     --key $(join(release.segments, '/'))
+                     --key $(release.key)
                      --acl public-read
                  ```; stdout=devnull))
-    parts = collect(release.segments)
-    parts[end] = replace(parts[end], string(version) => "$short_version-latest")
-    latest = join(parts, '/')
-    run(```
-        aws s3 cp
-            $release
-            s3://$(release.bucket)/$latest
-            --acl public-read
-        ```)
-    run(pipeline(`curl -s -X PURGE https://julialang-s3.julialang.org/$latest`;
+    latest = latest_url(platform, version, ext)
+    run(`aws s3 cp $release $latest --acl public-read`)
+    run(pipeline(`curl -s -X PURGE https://julialang-s3.julialang.org/$(latest.key)`;
                  stdout=devnull))
 end
