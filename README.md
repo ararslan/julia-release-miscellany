@@ -119,7 +119,7 @@ new version.
 Use the date as shown in the REPL banner as the release date, which should be the date the
 git tag was created.
 Ensure that the platforms listed in the corresponding table on the [downloads
-page](https://github.com/JuliaLang/www.julialang.org/blob/main/downloads/index.md)
+page](https://github.com/JuliaLang/www.julialang.org/blob/main/downloads/manual-downloads.md)
 reflect the available binaries for this release.
 Add an entry to the [old releases
 page](https://github.com/JuliaLang/www.julialang.org/blob/main/downloads/oldreleases.md)
