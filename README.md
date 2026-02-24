@@ -21,8 +21,9 @@ PR that bumps the version is merged.
 6. Compute and upload checksums
 7. Trigger a build of `versions.json`
 8. Trigger a build of the JuliaUp versiondb
-9. Update the website
-10. Announce on Discourse
+9. Update the Julia website
+10. Update the README in the Julia repo
+11. Announce on Discourse
 
 ### Creating the tag
 
