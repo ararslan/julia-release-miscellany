@@ -10,7 +10,7 @@ using SHA
 
 global_aws_config(; profile="julia", region="us-east-1")
 
-version = v"1.13.0-beta2"
+version = v"1.13.0-rc1"
 
 macos_already_notarized = false  # whether Elliot notarized manually and put in julialang2
 
@@ -37,12 +37,8 @@ platforms = [
     Windows(:i686),
 ]
 
-#builder(::FreeBSD) = :buildbot  # Until the julia-buildkite PR is merged
-#if version < v"1.7.0-"
-#    builder(::Any) = :buildbot  # Until 1.6 LTS moves to buildkite
-#else
-    builder(::Any) = :buildkite
-#end
+# Holdover from when we were transitioning to buildkite
+builder(::Any) = :buildkite
 
 short_name(::FreeBSD) = "freebsd"
 short_name(::Windows) = "winnt"
