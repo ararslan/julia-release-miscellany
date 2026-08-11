@@ -38,17 +38,19 @@ The tag event should trigger a build on buildkite.
 ### Binary dance
 
 Moving binaries from the `julialangnightlies` bucket to `julialang2` is handled by the
-script, as is computing and uploading checksums.
-The code assumes you have a local AWS profile called `julia` with credentials obtained
-from <https://d-906796850d.awsapps.com/start#/>.
-Run the code with `AWS_PROFILE=julia` set in the environment, e.g.
+`binaries.jl` script, as is computing and uploading checksums.
+That script assumes you have active AWS credentials and can execute AWS CLI commands as
+subprocesses of a parent Julia process without explicitly providing credential information.
 
-```bash
-AWS_PROFILE=julia julia --project=.
-```
+You can use one of the following methods to ensure authentication is set up as required:
 
-This ensures that the credentials are available to subprocesses, as the AWS interactions
-in the script use the AWS CLI.
+- Log into <https://d-906796850d.awsapps.com/start#/> in a browser, and either
+    - copy credentials as environment variables and paste those into your shell without setting `AWS_PROFILE`, or
+    - copy credentials and paste them into your local AWS credentials file and set `AWS_PROFILE`.
+- Run `aws sso login --profile julia` then `julia update-aws-credentials.jl` and set `AWS_PROFILE`.
+
+If `AWS_PROFILE` should be set, you can either `export` it in your shell and invoke Julia
+as `julia --project=.` or set it just for this command, i.e., `AWS_PROFILE=julia julia --project=.`.
 
 ### Source tarballs
 
